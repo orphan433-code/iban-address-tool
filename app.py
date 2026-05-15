@@ -24,29 +24,38 @@ if iban_input:
         country_name, code = get_country_info(iban_input)
         
         if country_name:
-            # Настраиваем Faker под страну (локаль)
-            # Например, для PL будет pl_PL
+            # Настраиваем Faker под страну
             try:
                 fake = Faker(f"{code.lower()}_{code.upper()}")
             except:
-                fake = Faker() # Если локали нет, используем стандартную
+                fake = Faker()
 
             # Генерируем данные
             city = fake.city()
-            address = fake.street_address()
+            raw_address = fake.street_address()
 
-            # Выводим результат
+            # Логика очистки адреса: оставляем только улицу и номер дома
+            # Большинство локалей Faker возвращают "Street Name 123, Flat 1" или "Street, 123..."
+            # Берем часть до второй запятой (если она есть)
+            address_parts = raw_address.split(',')
+            if len(address_parts) > 1:
+                # Оставляем только "Улица, Номер"
+                clean_address = f"{address_parts[0].strip()}, {address_parts[1].strip()}"
+            else:
+                clean_address = raw_address
+
             st.success(f"Country: **{country_name}**")
             
-            # Блок с результатом для копирования
-            full_address = f"{address}, {city}, {country_name}"
-            st.code(full_address, language="text")
-            st.caption("Copy the address above")
+            # Поле для копирования АДРЕСА
+            st.write("**Address**")
+            st.code(clean_address, language="text")
             
-            # Доп инфо
-            col1, col2 = st.columns(2)
-            col1.metric("City", city)
-            col2.metric("ISO Code", code)
+            # Поле для копирования ГОРОДА (сделал таким же блоком)
+            st.write("**City**")
+            st.code(city, language="text")
+            
+            st.caption("Click to copy any field above")
+
         else:
             st.error("Could not recognize the country code.")
     else:

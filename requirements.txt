@@ -1,3 +1,5 @@
 streamlit
-faker
 pycountry
+geonamescache
+requests
+geopy
